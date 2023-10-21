@@ -9,11 +9,11 @@ FILE *gInterpreterFile;
 
 const unsigned int gkMemSize = 1000;
 
-const unsigned int kNumberRegisters = 10;
-unsigned int registers [10];
+const unsigned int gkNumberRegisters = 10;
+unsigned int gRegisters [gkNumberRegisters];
 
-const unsigned int kNumberRAM = 1000;
-unsigned int RAM [kNumberRAM];
+const unsigned int gkNumberRAM = 1000;
+unsigned int gRAM [gkNumberRAM];
 
 unsigned int gInstructionPointer = 0;
 
@@ -22,6 +22,8 @@ unsigned int gNumInstructions = 0; // 0/1 ????
 // Declare Functions
 void usage (char *);
 int reset (void);
+int fillRAM (void);
+int printRAM (void);
 
 int main(int argc, char *argv[]) {
 
@@ -37,14 +39,20 @@ int main(int argc, char *argv[]) {
   }
 
   // Get Number of cases
-  int nCases;
-  nCases  = fgetc(gInterpreterFile);
+  int nCases  = fgetc(gInterpreterFile) - '0';
+  printf ("Number of cases: %d\n", nCases);
   while (fgetc(gInterpreterFile) != '\n'); // End of Line
   fgetc(gInterpreterFile); // Blank space between number of cases and the instructions
 
   for (int i = 0; i < nCases; i++) {
     if(reset() != 0) {
       fprintf (stderr, "Error: Failed to reset the interpreter.\n");
+    }
+    if(fillRAM() != 0) {
+      fprintf(stderr, "Error: Failed to fill the RAM.\n");
+    }
+    if(printRAM() != 0) {
+      fprintf(stderr, "Error: Failed to print the RAM.\n");
     }
 
     
@@ -69,9 +77,28 @@ void usage (char *cmd) {
 }
 
 int reset (void) {
-  memset(registers, 0, sizeof(registers)); // Reset registers
-  memset(RAM, 0, sizeof(RAM)); //Reset RAM
+  memset(gRegisters, 0, sizeof(gRegisters)); // Reset registers
+  memset(gRAM, 0, sizeof(gRAM)); //Reset RAM
   gInstructionPointer = 0; // Reset instruction pointer
   gNumInstructions = 0; // Reset instruction counter 0/1 ???
   return (0);
+}
+
+int fillRAM (void) {
+  // Fill RAM with instructions
+  for (int i = 0; ; i++) {
+    fscanf (gInterpreterFile, "%u", &gRAM[i]); // newline??
+    gRAM[i] %= gkMemSize;
+    if (gRAM[i] == '\0')
+      break;
+  }
+  return 0;
+}
+
+int printRAM (void) {
+  printf("PRINT RAM\n");
+  for (int i = 0; i < gkNumberRAM && gRAM[i] != 0; i++) {
+    printf ("gRam[%3d]: %3u\n", i, gRAM[i]);
+  }
+  return 0;
 }
